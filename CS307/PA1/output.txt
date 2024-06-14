@@ -1,0 +1,3 @@
+       -n, --line-number
+              Prefix each line of output with the 1-based line  number  within
+              its input file.

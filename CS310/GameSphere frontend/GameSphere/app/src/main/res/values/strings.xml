@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">GameSphere</string>
+    <string name="hint_game_name">Game Name</string>
+    <string name="hint_review">Review</string>
+    <string name="hint_platform">Platform (JSON format)</string>
+    <string name="hint_ratings">Ratings (JSON format)</string>
+    <string name="submit">Submit</string>
+</resources>

@@ -1,0 +1,4 @@
+wc hw2.c > output1.txt
+grep danger < input1.txt &
+ls -a &
+grep clearly -i < input1.txt &

@@ -1,0 +1,28 @@
+----------
+Command: wc
+Inputs: hw2.c
+Options: 
+Redirection: >
+Background Job: n
+----------
+----------
+Command: grep
+Inputs: danger
+Options: 
+Redirection: <
+Background Job: y
+----------
+----------
+Command: ls
+Inputs: 
+Options: -a
+Redirection: -
+Background Job: y
+----------
+----------
+Command: grep
+Inputs: clearly
+Options: -i
+Redirection: <
+Background Job: y
+----------

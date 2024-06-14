@@ -1,0 +1,32 @@
+SU_Stock
+
+Company:
+In SU_Stock, people can put their money into different companies. Each company has a "Name" and a unique abbreviation known as the "symbol"(PK). They also have a certain number of shares that people can buy, called "Outstanding Shares".
+
+Stock(weak entity): 
+For each trading day, every company's(FK:"symbol") stock is tracked for its "highest" and "lowest" price points. Additionally, the "opening" and "closing" prices for the day are recorded. The platform also provides information on the total "volume" of shares traded during that day. This data is accessible for any specific "date", allowing users to analyze the performance of any stock over time.
+
+User:
+Users are the people that uses SU_Stock, they are defined with "U_ID" which is a Primary key, they also have "Name" and "email" attributes.
+
+Portfolio:
+Each user owns a unique portfolio, this portfolio stores how much "value" the user has in SU_Stock, Portfolio is place where all claimed ownerships are store and it has a unique P_ID(PK) value. 
+
+Ownership(weak entity):
+it shows which company (FK:"symbol") and what "quantity" of stock is owned by the user(FK:"U_ID").
+
+Order:
+Every user(FK:"U-ID") can perform any amount("quantity") of order , order is an attempt to buy/sell("type") a certain company's (FK:"symbol") spesific amount of stock at a spesific "price". Each order is unique(PK:"O_ID") and stored with it's "date".
+
+
+
+
+Relationships:
+
+User-Order(many-to-1): Stores all buy/sell stock orders at any date
+
+User-Portfolio(1-to-1): Shows what is the value of user's portfolio. Total relationship between them (User must own a Portfolio)
+
+Portfolio-Ownership(1-to-many): Shows what stocks and what quantity are owned by the portfolio. Ownership cant exist without portfolio
+
+Company-Stock(1-to-many): Shows the company's value for statistics. Stock is a weak entity so it can't exist without company. They are in a total relationship so company must have a stock

@@ -1,0 +1,328 @@
+
+ (define isexpression?
+  (lambda (e)
+    (or (number? e)
+        (symbol? e)
+        (isif? e)
+        (iscond? e)
+        (islet? e)
+        (isletstar? e)
+        (isoperator? e))
+  )
+)
+
+(define isif?
+  (lambda (e)
+    (and (pair? e)
+         (eq? (car e) 'if)
+         (= (length (cdr e)) 3)
+         (isexpression? (cadr e))
+         (isexpression? (caddr e))
+         (isexpression? (cadddr e))
+    )
+  )
+)
+
+(define iscond?
+  (lambda (e)
+    (and (pair? e)
+         (eq? (car e) 'cond)
+         (iselse_clause? (last e))
+         (isconditional_list? (butlast (cdr e) ))
+    )
+  )
+)
+
+(define iselse_clause?
+  (lambda (clause)
+    (and (pair? clause)
+         (eq? (car clause) 'else)
+         (isexpression? (cadr clause))
+    )
+  )
+)
+
+(define isconditional?
+  (lambda (e)
+    (and (pair? e)
+         (isexpression? (car e))
+         (isexpression? (cadr e))
+         (null? (cddr e))   ; No other elements should be present in the list
+    )
+  )
+)
+
+(define isconditional_list?
+  (lambda (lst)
+    (if (null? lst)
+        #t
+        (and (isconditional? (car lst))
+             (isconditional_list? (cdr lst))
+        )
+    )
+  )
+)
+
+(define last
+  (lambda (lst)
+    (if (null? (cdr lst))
+        (car lst)
+        (last (cdr lst))
+    )
+  )
+)
+
+(define butlast
+  (lambda (lst)
+    (if (null? (cdr lst))
+        '()
+        (cons (car lst) (butlast (cdr lst)))
+    )
+  )
+)
+
+(define islet?
+  (lambda (e)
+    (and (pair? e)
+         (eq? (car e) 'let)
+         (isvar_binding_list? (cadr e))
+         (isexpression? (caddr e))
+    )
+  )
+)
+
+(define isletstar?
+  (lambda (e)
+    (and (pair? e)
+         (eq? (car e) 'let*)
+         (isvar_binding_list? (cadr e))
+         (isexpression? (caddr e))
+    )
+  )
+)
+
+(define isvar_binding_list?
+  (lambda (lst)
+    (if (null? lst)
+        #t
+        (and (pair? (car lst))
+             (symbol? (caar lst))
+             (isexpression? (cadar lst))
+             (isvar_binding_list? (cdr lst)))
+    )
+  )
+)
+
+(define isoperator?
+  (lambda (e)
+    (and (pair? e)
+         (memv (car e) '(+ - * /))
+         (isactuals? (cdr e))
+    )
+  )
+)
+
+(define isactuals?
+  (lambda (lst)
+    (if (null? lst)
+        #t
+        (and (isexpression? (car lst))
+             (isactuals? (cdr lst))
+        )
+    )
+  )
+)
+
+; Returns the operator function corresponding to the operator symbol
+(define get-operator 
+    (lambda (op-symbol)
+        (cond
+            ((eq? op-symbol '+) +)
+            ((eq? op-symbol '*) *)
+            ((eq? op-symbol '-) -)
+            ((eq? op-symbol '/) /)
+            (else (display "ERROR"))
+        )
+    )
+)
+
+; Returns the value of a variable from the environment
+(define get-value 
+    (lambda (var env)
+        (cond 
+            ((null? env) (display "ERROR"))
+            ((eq? var (caar env)) (cdar env))
+            (else (get-value var (cdr env)))
+        )
+    )
+)
+
+; Extends the environment by adding a new variable and its value
+(define extend-env 
+    (lambda (var val old-env)
+        (cons (cons var val) old-env)
+    )
+)
+
+; Checks if the given expression is a 'define' expression
+(define define-expr? 
+    (lambda (e)
+        (and (list? e) (= (length e) 3) (eq? (car e) 'define) (symbol? (cadr e)))
+    )
+)
+
+(define check-duplicate-bindings 
+  (lambda (bindings)
+    (if (null? bindings)
+        #t
+        (let ((var (caar bindings)))
+          (if (null? (cdr bindings))
+              #t
+              (not (or (eq? var (caadr bindings)) (not (check-duplicate-bindings (cdr bindings)))))
+          )
+        )
+    )
+  )
+)
+
+(define eval-let-bindings 
+  (lambda (bindings env)
+    (if (null? bindings)
+        env
+        (let* ((var (caar bindings))
+               (val (s7 (cadar bindings) env)))
+          (extend-env var val (eval-let-bindings (cdr bindings) env))
+        )
+    )
+  )
+)
+
+(define eval-let*-bindings 
+  (lambda (bindings env)
+    (if (null? bindings)
+        env
+        (let* ((var (caar bindings))
+               (val (s7 (cadar bindings) env)))
+          (eval-let*-bindings (cdr bindings) (extend-env var val env))
+        )
+    )
+  )
+)
+
+(define handle-let 
+  (lambda (expr env)
+    (let ((bindings (cadr expr))
+          (body (caddr expr)))
+      (if (check-duplicate-bindings bindings)
+          (s7 body (eval-let-bindings bindings env))
+          (display "ERROR"))
+    )
+  )
+)
+
+(define handle-let* 
+  (lambda (expr env)
+    (let ((bindings (cadr expr))
+          (body (caddr expr)))
+      (if (check-duplicate-bindings bindings)
+          (s7 body (eval-let*-bindings bindings env))
+          (display "ERROR")
+      )
+    )
+  )
+)
+
+(define handle-cond
+  (lambda (clauses env)
+    (cond 
+      ((null? clauses) (display "ERROR")) ; No more clauses to check, something went wrong
+      ((eq? (car (car clauses)) 'else) (s7 (cadr (car clauses)) env)) ; If the condition is 'else', evaluate and return the result expression
+      ((not (eq? (s7 (car (car clauses)) env) 0)) ; If the evaluated condition is not zero (treated as true)
+       (s7 (cadr (car clauses)) env)) ; Evaluate and return the result expression
+      (else (handle-cond (cdr clauses) env)) ; Else, check the next clause
+    )
+  )
+)
+
+(define handle-if
+  (lambda (expr env)
+    (let  ((predicate (cadr expr))
+            (consequent (caddr expr))
+            (alternative (cadddr expr))
+          )
+          (if (eq? (s7 predicate env) 0)
+              (s7 alternative env)
+              (s7 consequent env)
+          )
+    )
+  )
+)
+
+; Evaluates the given expression
+(define s7 
+  (lambda (e env)
+    (cond
+      ((number? e) e)
+      ((symbol? e) (get-value e env))
+      ((islet? e) (handle-let e env))
+      ((isletstar? e) (handle-let* e env))
+      ((iscond? e) (handle-cond (cdr e) env))
+      ((isif? e) (handle-if e env))
+      ( (and ( list? e) (> (length e) 1) (isoperator? e) ) 
+        (let (
+              (operator (get-operator (car e)))
+              (operands (map s7 (cdr e) (make-list (length (cdr e)) env)))
+              )
+          (apply operator operands)
+        )
+      )
+      (else 
+        (display "ERROR")
+      )
+    )
+  )
+)
+
+; Reads an expression, evaluates it, and prints the result
+(define repl 
+  (lambda (env)
+    (guard (err
+            (else
+             (display "ERROR")
+             (newline)
+             (newline)
+            )
+           )
+      (let* ((dummy1 (display "cs305> "))
+             (expr (read))
+             (new-env (if (define-expr? expr) 
+                          (extend-env (cadr expr) (s7 (caddr expr) env) env)
+                          env
+                      )
+             )
+             (val (if (define-expr? expr)
+                      (cadr expr)
+                      (s7 expr env)
+                  )
+             )
+            )
+        (if (not (eq? val #!unspecific))  
+            (display "cs305: ")
+        ) 
+        (if (not (eq? val #!unspecific))  
+            (display val)
+        )                
+        (newline)
+        (newline)
+        (repl new-env)
+      )
+    )
+  )
+)
+
+; Starts the interpreter when called
+(define cs305
+    (lambda ()
+        (repl '())
+    )
+)
