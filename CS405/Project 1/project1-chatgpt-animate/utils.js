@@ -146,7 +146,10 @@ void main() {
 function getChatGPTModelViewMatrix() {
     const transformationMatrix = new Float32Array([
         // you should paste the response of the chatGPT here:
-
+        0.1767767, -0.28661165, 0.73919892, 0.3,
+        0.30618622, 0.36959946, 0.28033009, -0.25,
+        -0.35355339, 0.1767767, 0.61237244, 0,
+        0, 0, 0, 1
     ]);
     return getTransposeMatrix(transformationMatrix);
 }
@@ -161,6 +164,25 @@ function getChatGPTModelViewMatrix() {
 function getModelViewMatrix() {
     // calculate the model view matrix by using the transformation
     // methods and return the modelView matrix in this method
+
+    // Scale
+    const scaleMatrix = createScaleMatrix(0.5, 0.5, 1.0);
+    
+    // Rotation (convert degrees to radians)
+    const rotateXMatrix = createRotationMatrix_X(Math.PI / 6); // 30 degrees on x-axis
+    const rotateYMatrix = createRotationMatrix_Y(Math.PI / 4); // 45 degrees on y-axis
+    const rotateZMatrix = createRotationMatrix_Z(Math.PI / 3); // 60 degrees on z-axis
+    
+    // Translation
+    const translateMatrix = createTranslationMatrix(0.3, -0.25, 0);
+    
+    // Combine transformations (order: scale, rotateZ, rotateY, rotateX, translate)
+    let modelViewMatrix = multiplyMatrices(scaleMatrix, rotateZMatrix);
+    modelViewMatrix = multiplyMatrices(modelViewMatrix, rotateYMatrix);
+    modelViewMatrix = multiplyMatrices(modelViewMatrix, rotateXMatrix);
+    modelViewMatrix = multiplyMatrices(translateMatrix, modelViewMatrix);
+    
+    return modelViewMatrix;
 }
 
 /**
@@ -172,9 +194,29 @@ function getModelViewMatrix() {
  * The next 5 seconds, the cube should return to its initial position.
  */
 function getPeriodicMovement(startTime) {
-    // this metdo should return the model view matrix at the given time
-    // to get a smooth animation
-}
+    // Get the current time in seconds
+    const currentTime = (Date.now() - startTime) / 1000;
+    // Cycle the time every 10 seconds
+    const cycleTime = currentTime % 10;
 
+    // Interpolation factor 't' which goes from 0 to 1 in the first 5 seconds
+    // and then back from 1 to 0 in the next 5 seconds
+    let t = cycleTime < 5 ? cycleTime / 5 : (10 - cycleTime) / 5;
+
+    // Identity matrix (initial state)
+    const identityMatrix = createIdentityMatrix();
+
+    // Final transformation matrix (from Task 2)
+    const finalMatrix = getModelViewMatrix(); 
+
+    // Interpolate between identity matrix and final matrix
+    const interpolatedMatrix = [];
+    for (let i = 0; i < 16; i++) {
+        interpolatedMatrix.push(identityMatrix[i] * (1 - t) + finalMatrix[i] * t);
+    }
+
+    // Return the interpolated model view matrix as a Float32Array
+    return new Float32Array(interpolatedMatrix);
+}
 
 
