@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PNG Image Viewer</title>
+<style>
+  body {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+  }
+  #image-container {
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+  <h1>PNG Image Viewer</h1>
+  
+  <div>
+    <label for="widthSlider">Width:</label>
+    <input type="range" id="widthSlider" min="50" max="500" value="300">
+  </div>
+  
+  <div>
+    <label for="heightSlider">Height:</label>
+    <input type="range" id="heightSlider" min="50" max="500" value="200">
+  </div>
+  
+  <div id="image-container">
+    <img id="png-image" src="Turkiye.png" alt="PNG Image">
+  </div>
+  
+  <div>
+    <h2>Image Header Information:</h2>
+    <pre id="header-info"></pre>
+    <pre id="image-info"></pre>
+    <p> Look into the details of the PNG Header. Why it is so important to have a unique header?</p>
+    <p> Can you make sense of the Image data?</p>
+  </div>
+
+  <script>
+    const widthSlider = document.getElementById("widthSlider");
+    const heightSlider = document.getElementById("heightSlider");
+    const pngImage = document.getElementById("png-image");
+    const headerInfo = document.getElementById("header-info");
+    const imageInfo = document.getElementById("image-info");
+
+    widthSlider.addEventListener("input", updateImageSize);
+    heightSlider.addEventListener("input", updateImageSize);
+    pngImage.addEventListener("load", showHeaderInfo);
+
+    function updateImageSize() {
+      const newWidth = widthSlider.value + "px";
+      const newHeight = heightSlider.value + "px";
+      pngImage.style.width = newWidth;
+      pngImage.style.height = newHeight;
+    }
+
+    function showHeaderInfo() {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", pngImage.src, true);
+      xhr.responseType = "arraybuffer";
+
+
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          const byteArray = new Uint8Array(xhr.response);
+          const byteArray2 = new Uint8Array(xhr.response);
+          const headerBytes = byteArray.slice(0, 8);
+          const imageBytes = byteArray2.slice(0,1280);
+
+          const hexValues = Array.from(headerBytes).map(byte => byte.toString(16).padStart(2, '0').toUpperCase());
+          headerInfo.textContent = "PNG Header (HEX): " + hexValues.join(" ");
+
+          const hexValuesImg = Array.from(imageBytes).map(byte => byte.toString(8).padStart(2, '0').toUpperCase());
+          imageInfo.textContent = "PNG Image (HEX): " + hexValuesImg.join(" ");
+
+        } else {
+          console.error("Error loading image:", xhr.status);
+        }
+      };
+
+      xhr.send();
+    }
+  </script>
+</body>
+</html>
