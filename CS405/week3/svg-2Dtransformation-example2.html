@@ -1,0 +1,26 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Grid of 50x50 units -->
+  <defs>
+    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="gray" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+   <rect x="100" y="100" width="50" height="50" fill="grey"/>
+
+  <!-- Blue rectangle: rotate first, then translate  Remember the center of rotation!-->
+
+  <rect x="100" y="100" width="50" height="50" fill="blue" transform="rotate(45, 125, 125) translate(50, 0)" />
+
+  <!-- Red rectangle: translate first, then rotate -->
+  <rect x="100" y="100" width="50" height="50" fill="red" transform="translate(50, 0) rotate(45, 125, 125)" />
+
+  <!-- Blue rectangle: rotate first, then translate  Remember the center of rotation!-->
+
+  <rect x="100" y="100" width="50" height="50" fill="pink" transform="rotate(45, 0, 0) translate(50, 0)" />
+
+  <!-- Red rectangle: translate first, then rotate -->
+  <rect x="100" y="100" width="50" height="50" fill="green" transform="translate(50, 0) rotate(45, 0, 0)" />
+</svg>
