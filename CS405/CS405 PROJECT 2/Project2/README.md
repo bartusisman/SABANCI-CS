@@ -23,4 +23,5 @@
 ### Notes
 - I couldnt implemented the UI interface for the task 4, since i needed to modify the project2.html file and it is not allowed in the instructions but the .js functions are implemented.
 
-[GitHub Repository Link] 
+### GitHub Repository Link:
+https://github.com/bartusisman/SABANCI-CS/tree/main/CS405/CS405%20PROJECT%202/Project2 
