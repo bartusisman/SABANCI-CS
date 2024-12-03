@@ -336,6 +336,33 @@ function LoadTexture( param )
 	DrawScene();
 }
 
+function LoadTexture2(param) {
+    if (param.files && param.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = new Image();
+            img.src = e.target.result;
+            document.getElementById('texture2-img').src = e.target.result;
+            img.onload = function() {
+                meshDrawer.setTexture(img, 2);
+                meshDrawer.enableSecondTexture(true);
+                DrawScene();
+            }
+        };
+        reader.readAsDataURL(param.files[0]);
+    }
+}
+
+function SetTextureBlend(param) {
+    meshDrawer.setBlendFactor(param.value / 100);
+    DrawScene();
+}
+
+function SetTexture2Type(param) {
+    meshDrawer.setSecondTextureType(parseInt(param.value));
+    DrawScene();
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 </script>
 
@@ -417,6 +444,11 @@ canvas {
 		height: calc( 100% - 2em );
 	}
 }
+#texture-img, #texture2-img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 1em;
+}
 </style>
 
 </head>
@@ -438,12 +470,26 @@ canvas {
 
 <div class="control-group">
 <div class="control">OBJ model:<br/><input id="obj" type="file" onchange="LoadObj(this)" accept=".obj"/></div>
-<div class="control">Texture image:<br/><input id="texture" type="file" onchange="LoadTexture(this)" accept="image/*"/></div>
-<div class="control">Second Texture image:<br/><input id="texture2" type="file" onchange="LoadTexture2(this)" accept="image/*"/></div>
+<div class="control">Base Texture:<br/><input id="texture" type="file" onchange="LoadTexture(this)" accept="image/*"/></div>
+<div class="control">Second Texture:<br/><input id="texture2" type="file" onchange="LoadTexture2(this)" accept="image/*"/></div>
+<div class="control">
+    <label for="texture-blend">Texture Blend:</label><br/>
+    <input id="texture-blend" type="range" min="0" max="100" value="50" onchange="SetTextureBlend(this)"/>
+</div>
+<div class="control">
+    <label for="texture2-type">Second Texture Type:</label><br/>
+    <select id="texture2-type" onchange="SetTexture2Type(this)">
+        <option value="0">Color Map</option>
+        <option value="1">Normal Map</option>
+    </select>
+</div>
 </div>
 
 <div class="control-group">
+<div class="control">Preview - Base Texture:</div>
 <img id="texture-img" />
+<div class="control">Preview - Second Texture:</div>
+<img id="texture2-img" />
 </div>
 </div>
 </div>
