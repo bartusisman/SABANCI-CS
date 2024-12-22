@@ -51,17 +51,12 @@ class SceneNode {
         if (this.trs) {
             let transformMatrix = this.trs.getTransformationMatrix();
 
-            // Update the model matrix
-            transformedModel = MatrixMult(transformMatrix, modelMatrix);
-
-            // Update the model-view matrix
-            transformedModelView = MatrixMult(transformMatrix, modelView);
-
-            // Update the MVP (projection * view * model)
-            transformedMvp = MatrixMult(transformMatrix, mvp);
-
-            // Update the normal matrix by combining the TRS normal matrix with the current one
-            transformedNormals = MatrixMult(this.trs.getNormalMatrix(), normalMatrix);
+            // Update matrices in the correct order (parent * local)
+            transformedModel = MatrixMult(modelMatrix, transformMatrix);
+            transformedModelView = MatrixMult(modelView, transformMatrix);
+            transformedMvp = MatrixMult(mvp, transformMatrix);
+            // For normal matrix, we'll just use the same transformation
+            transformedNormals = MatrixMult(normalMatrix, transformMatrix);
         }
 
         // Draw the mesh, if available
