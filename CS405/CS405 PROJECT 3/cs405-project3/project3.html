@@ -94,6 +94,28 @@
             var canvas;			// HTML canvas
             var prog;			// The shader program
 
+            // Declare all mesh drawers and nodes as global variables
+            var sunMeshDrawer;
+            var earthMeshDrawer;
+            var moonMeshDrawer;
+            var marsMeshDrawer;
+
+            var sunNode;
+            var earthNode;
+            var moonNode;
+            var marsNode;
+
+            var sunTrs;
+            var earthTrs;
+            var moonTrs;
+            var marsTrs;
+
+            // Additional required global variables
+            var sphereMesh;
+            var sphereBuffers;
+            var camera;
+            var perspective;
+
             // Called once to initialize
             function InitWebGL() {
                 // Initialize the WebGL canvas
@@ -180,12 +202,11 @@
                 var modelViewMatrix = MatrixMult(camera.getLookAt(), modelMatrix);
                 var mvp = MatrixMult(perspective.getPerspectiveMatrix(), modelViewMatrix);
                 var normalMatrix = getNormalMatrix(modelMatrix);
+                
+                // Set rotations for all celestial bodies
                 sunNode.trs.setRotation(0, 0, zRotation);
                 earthNode.trs.setRotation(0, 0, zRotation * 2);
-                /**
-                 *@task3 : add rotation to mars on z-axis.
-                    the rotation should be 1.5 * zRotation 
-                */
+                marsNode.trs.setRotation(0, 0, zRotation * 1.5);  // Mars rotation at 1.5x Sun's rotation
 
                 sunNode.draw(mvp, modelViewMatrix, normalMatrix, modelMatrix);
                 requestAnimationFrame(renderLoop);
@@ -196,15 +217,20 @@
                 InitWebGL();
                 UpdateCanvasSize();
 
+                // Create sphere geometry
                 sphereMesh = new ObjMesh();
                 sphereMesh.parse(sphere);
                 sphereBuffers = sphereMesh.getVertexBuffers();
 
+                // Set up camera and perspective
                 camera = new Camera([0, 0, -1], [0, 0, 1], [0, 1, 0]);
                 perspective = new Perspective(Math.PI / 2, canvas.width / canvas.height, 1, 500);
+
+                // Create MeshDrawer objects
                 sunMeshDrawer = new MeshDrawer(true);
                 earthMeshDrawer = new MeshDrawer();
                 moonMeshDrawer = new MeshDrawer();
+                marsMeshDrawer = new MeshDrawer();  // Initialize Mars MeshDrawer
 
                 sunMeshDrawer.setMesh(sphereBuffers.positionBuffer, sphereBuffers.texCoordBuffer, sphereBuffers.normalBuffer);
                 setTextureImg(sunMeshDrawer, "https://i.imgur.com/gl8zBLI.jpg");
@@ -227,16 +253,13 @@
                 moonTrs.setScale(0.25, 0.25, 0.25);
                 moonNode = new SceneNode(moonMeshDrawer, moonTrs, earthNode);
 
-                /**
-                 * @Task3 : Add Mars to the solar system
-                 * Mars should be a child of the sun.
-                 * Mars should use sphere as the mesh object.
-                 * Mars should be translated by -6 units on the X axis with respect to the sun 
-                 * Mars should be scaled to 0.35 for x,y and z coordinates
-                 * use the image on the link below as texture:
-                 * @link : https://i.imgur.com/Mwsa16j.jpeg
-                 * 
-                 */
+                // Mars setup
+                marsMeshDrawer.setMesh(sphereBuffers.positionBuffer, sphereBuffers.texCoordBuffer, sphereBuffers.normalBuffer);
+                setTextureImg(marsMeshDrawer, "https://i.imgur.com/Mwsa16j.jpeg");
+                marsTrs = new TRS();
+                marsTrs.setTranslation(-6, 0, 0);
+                marsTrs.setScale(0.35, 0.35, 0.35);
+                marsNode = new SceneNode(marsMeshDrawer, marsTrs, sunNode);
 
                 renderLoop();
             };
